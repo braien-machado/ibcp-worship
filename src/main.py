@@ -1,8 +1,17 @@
+import os
+from dotenv import load_dotenv
+from supabase import Client, create_client
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
 
+load_dotenv()
+
 app = FastAPI()
+
+url: str = os.environ.get('SUPABASE_DEV_URL')
+key: str = os.environ.get('SUPABASE_DEV_KEY')
+supabase: Client = create_client(supabase_url=url, supabase_key=key)
 
 
 class Song(BaseModel):
@@ -17,7 +26,7 @@ def index():
 
 @app.get('/songs')
 def list_songs():
-    return { 'result': [] }
+    return { 'result': supabase.table('songs').select('*').execute()}
 
 
 @app.get('/songs/{song_id}')
