@@ -13,7 +13,7 @@ url: str = os.environ.get('SUPABASE_DEV_URL')
 key: str = os.environ.get('SUPABASE_DEV_KEY')
 supabase: Client = create_client(supabase_url=url, supabase_key=key)
 
-
+  
 class Song(BaseModel):
     name: str
     singer: Optional[str]
