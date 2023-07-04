@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import Song from "@/interfaces/Song";
 
 const prisma = new PrismaClient();
 
 type Key = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
-type Song = {
-  id?: string
-  name: string
-  author: string
-  videoUrl?: string
-  key?: Key
+interface PresentationSong extends Omit<Song, 'id'> {
+  key: Key
+}
+
+interface PresentationForm {
+  date: string;
+  songs: PresentationSong[]
 }
 
 export async function GET (_request: Request) {
@@ -22,9 +24,9 @@ export async function GET (_request: Request) {
 
 export async function POST (request: Request) {
   try {
-    const { date, songs } = await request.json();
+    const { date, songs }: PresentationForm = await request.json();
     const presentation = await prisma.$transaction(async (tx) => {
-      const createdSongs = await Promise.all(songs.map(async ({ name, author, key, videoUrl }: Song) => {
+      const createdSongs = await Promise.all(songs.map(async ({ name, author, key, videoUrl }) => {
         const createdSong = await tx.song.create({ data: { name, author, videoUrl } });
         return { key, songId: createdSong.id };
       }));
