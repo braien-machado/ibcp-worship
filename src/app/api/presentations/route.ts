@@ -41,9 +41,9 @@ export async function POST (request: Request) {
       })
     });
   
-    return new Response(JSON.stringify(presentation), { status: 201 });
+    return new NextResponse(JSON.stringify(presentation), { status: 201 });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify(error), { status: 500 });
+    return new NextResponse(JSON.stringify(error), { status: 500 });
   }
 }
