@@ -20,19 +20,35 @@ model Song {
   @@unique([name, author])
 }
 
+enum Period {
+  dia
+  noite
+}
+
 model Presentation {
-  id        String              @id @default(uuid())
-  date      DateTime
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @default(now())
-  songs     PresentationSong[]
+  id      String              @id @default(uuid())
+  date    DateTime
+  period  Period
+  songs   PresentationSong[]
+
+  @@unique([date, period])
+}
+
+enum Key {
+  A
+  B
+  C
+  D
+  E
+  F
+  G
 }
 
 model PresentationSong {
   id              String        @id @default(uuid())
   presentationId  String
   songId          String
-  key             String?
+  key             Key?
   presentation    Presentation  @relation(fields: [presentationId], references: [id])
   song            Song          @relation(fields: [songId], references: [id])
 
