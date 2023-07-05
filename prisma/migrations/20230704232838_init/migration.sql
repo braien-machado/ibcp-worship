@@ -1,3 +1,9 @@
+-- CreateEnum
+CREATE TYPE "Period" AS ENUM ('dia', 'noite');
+
+-- CreateEnum
+CREATE TYPE "Key" AS ENUM ('A', 'B', 'C', 'D', 'E', 'F', 'G');
+
 -- CreateTable
 CREATE TABLE "Song" (
     "id" TEXT NOT NULL,
@@ -12,8 +18,7 @@ CREATE TABLE "Song" (
 CREATE TABLE "Presentation" (
     "id" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "period" "Period" NOT NULL,
 
     CONSTRAINT "Presentation_pkey" PRIMARY KEY ("id")
 );
@@ -23,13 +28,16 @@ CREATE TABLE "PresentationSong" (
     "id" TEXT NOT NULL,
     "presentationId" TEXT NOT NULL,
     "songId" TEXT NOT NULL,
-    "key" TEXT,
+    "key" "Key",
 
     CONSTRAINT "PresentationSong_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Song_name_author_key" ON "Song"("name", "author");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Presentation_date_period_key" ON "Presentation"("date", "period");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PresentationSong_presentationId_songId_key" ON "PresentationSong"("presentationId", "songId");
