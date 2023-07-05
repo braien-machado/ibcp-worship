@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+
 import { PrismaClient } from "@prisma/client";
+import { Key, Period } from '@/helpers/types';
+import { presentationCreateFormSchema } from '@/helpers/zod/schemas';
 import Song from "@/interfaces/Song";
 
 const prisma = new PrismaClient();
-
-type Key = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
 interface PresentationSong extends Omit<Song, 'id'> {
   key: Key
@@ -12,6 +13,7 @@ interface PresentationSong extends Omit<Song, 'id'> {
 
 interface PresentationForm {
   date: string;
+  period: Period;
   songs: PresentationSong[]
 }
 
@@ -24,19 +26,34 @@ export async function GET (_request: Request) {
 
 export async function POST (request: Request) {
   try {
-    const { date, songs }: PresentationForm = await request.json();
+    const reqBody: PresentationForm = await request.json();
+    
+    const zodValidation = presentationCreateFormSchema.safeParse(reqBody);
+    if (!zodValidation.success) return new NextResponse(
+      JSON.stringify(zodValidation.error.issues),
+      { status: 400 }
+    );
+
+    const { date, period, songs } = reqBody;
     const presentation = await prisma.$transaction(async (tx) => {
-      const createdSongs = await Promise.all(songs.map(async ({ name, author, key, videoUrl }) => {
-        const createdSong = await tx.song.create({ data: { name, author, videoUrl } });
-        return { key, songId: createdSong.id };
+      const songsData = await Promise.all(songs.map(async ({ name, author, key, videoUrl }) => {
+        const songInTable = await tx.song.findUnique({ where: { name_author: { author, name } } });
+
+        if (songInTable === null) {
+          const { id: songId } = await tx.song.create({ data: { name, author, videoUrl } });
+          return { key, songId };
+        }
+
+        return { key, songId: songInTable.id };
       }));
-  
+
       return tx.presentation.create({
         data: {
           date: new Date(date),
+          period,
           songs: {
             createMany: {
-              data: createdSongs
+              data: songsData
             }
           }
         }
